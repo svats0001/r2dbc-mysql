@@ -20,6 +20,7 @@ import io.asyncer.r2dbc.mysql.constant.CompressionAlgorithm;
 import io.asyncer.r2dbc.mysql.constant.SslMode;
 import io.asyncer.r2dbc.mysql.constant.ZeroDateOption;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.resolver.AddressResolverGroup;
 import io.r2dbc.spi.ConnectionFactory;
 import io.r2dbc.spi.ConnectionFactoryOptions;
 import io.r2dbc.spi.ConnectionFactoryProvider;
@@ -308,6 +309,17 @@ public final class MySqlConnectionFactoryProvider implements ConnectionFactoryPr
      */
     public static final Option<Publisher<String>> PASSWORD_PUBLISHER = Option.valueOf("passwordPublisher");
 
+    /**
+     * Option to set the {@link AddressResolverGroup} for resolving host addresses.
+     * <p>
+     * This can be used to customize the DNS resolution mechanism, which is particularly useful in environments
+     * with specific DNS configuration needs or where a custom DNS resolver is required.
+     * <p>
+     *
+     * @since 1.2.0
+     */
+    public static final Option<AddressResolverGroup<?>> RESOLVER = Option.valueOf("resolver");
+
     @Override
     public ConnectionFactory create(ConnectionFactoryOptions options) {
         requireNonNull(options, "connectionFactoryOptions must not be null");
@@ -389,6 +401,8 @@ public final class MySqlConnectionFactoryProvider implements ConnectionFactoryPr
             .to(builder::loopResources);
         mapper.optional(PASSWORD_PUBLISHER).as(Publisher.class)
             .to(builder::passwordPublisher);
+        mapper.optional(RESOLVER).as(AddressResolverGroup.class)
+            .to(builder::resolver);
         mapper.optional(SESSION_VARIABLES).asArray(
             String[].class,
             Function.identity(),

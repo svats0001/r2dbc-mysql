@@ -22,6 +22,7 @@ import io.asyncer.r2dbc.mysql.constant.ZeroDateOption;
 import io.asyncer.r2dbc.mysql.extension.Extension;
 import io.asyncer.r2dbc.mysql.internal.util.InternalArrays;
 import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.resolver.AddressResolverGroup;
 import org.jetbrains.annotations.Nullable;
 import org.reactivestreams.Publisher;
 import reactor.netty.resources.LoopResources;
@@ -127,6 +128,9 @@ public final class MySqlConnectionConfiguration {
     @Nullable
     private final Publisher<String> passwordPublisher;
 
+    @Nullable
+    private final AddressResolverGroup<?> resolver;
+
     private MySqlConnectionConfiguration(
         boolean isHost, String domain, int port, MySqlSslConfiguration ssl,
         boolean tcpKeepAlive, boolean tcpNoDelay, @Nullable Duration connectTimeout,
@@ -141,7 +145,8 @@ public final class MySqlConnectionConfiguration {
         int queryCacheSize, int prepareCacheSize,
         Set<CompressionAlgorithm> compressionAlgorithms, int zstdCompressionLevel,
         @Nullable LoopResources loopResources,
-        Extensions extensions, @Nullable Publisher<String> passwordPublisher
+        Extensions extensions, @Nullable Publisher<String> passwordPublisher,
+        @Nullable AddressResolverGroup<?> resolver
     ) {
         this.isHost = isHost;
         this.domain = domain;
@@ -171,6 +176,7 @@ public final class MySqlConnectionConfiguration {
         this.loopResources = loopResources == null ? TcpResources.get() : loopResources;
         this.extensions = extensions;
         this.passwordPublisher = passwordPublisher;
+        this.resolver = resolver;
     }
 
     /**
@@ -301,6 +307,11 @@ public final class MySqlConnectionConfiguration {
         return passwordPublisher;
     }
 
+    @Nullable
+    AddressResolverGroup<?> getResolver() {
+        return resolver;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -337,7 +348,8 @@ public final class MySqlConnectionConfiguration {
             zstdCompressionLevel == that.zstdCompressionLevel &&
             Objects.equals(loopResources, that.loopResources) &&
             extensions.equals(that.extensions) &&
-            Objects.equals(passwordPublisher, that.passwordPublisher);
+            Objects.equals(passwordPublisher, that.passwordPublisher) &&
+            Objects.equals(resolver, that.resolver);
     }
 
     @Override
@@ -352,19 +364,26 @@ public final class MySqlConnectionConfiguration {
             loadLocalInfilePath, localInfileBufferSize,
             queryCacheSize, prepareCacheSize,
             compressionAlgorithms, zstdCompressionLevel,
-            loopResources, extensions, passwordPublisher);
+            loopResources, extensions, passwordPublisher, resolver);
     }
 
     @Override
     public String toString() {
-        if (isHost) {
-            return "MySqlConnectionConfiguration{host='" + domain + "', port=" + port + ", ssl=" + ssl +
-                ", tcpNoDelay=" + tcpNoDelay + ", tcpKeepAlive=" + tcpKeepAlive +
-                ", connectTimeout=" + connectTimeout +
+        return "MySqlConnectionConfiguration{" +
+                (isHost ? "host='" + domain + "', port=" + port + ", ssl=" + ssl +
+                          ", tcpNoDelay=" + tcpNoDelay + ", tcpKeepAlive=" + tcpKeepAlive :
+                        "unixSocket='" + domain + "'") +
+                buildCommonToStringPart() +
+                '}';
+    }
+
+    private String buildCommonToStringPart() {
+        return ", connectTimeout=" + connectTimeout +
                 ", preserveInstants=" + preserveInstants +
                 ", connectionTimeZone=" + connectionTimeZone +
                 ", forceConnectionTimeZoneToSession=" + forceConnectionTimeZoneToSession +
-                ", zeroDateOption=" + zeroDateOption + ", user='" + user + "', password=" + password +
+                ", zeroDateOption=" + zeroDateOption +
+                ", user='" + user + "', password=" + password +
                 ", database='" + database + "', createDatabaseIfNotExist=" + createDatabaseIfNotExist +
                 ", preferPrepareStatement=" + preferPrepareStatement +
                 ", sessionVariables=" + sessionVariables +
@@ -372,32 +391,14 @@ public final class MySqlConnectionConfiguration {
                 ", statementTimeout=" + statementTimeout +
                 ", loadLocalInfilePath=" + loadLocalInfilePath +
                 ", localInfileBufferSize=" + localInfileBufferSize +
-                ", queryCacheSize=" + queryCacheSize + ", prepareCacheSize=" + prepareCacheSize +
+                ", queryCacheSize=" + queryCacheSize +
+                ", prepareCacheSize=" + prepareCacheSize +
                 ", compressionAlgorithms=" + compressionAlgorithms +
                 ", zstdCompressionLevel=" + zstdCompressionLevel +
                 ", loopResources=" + loopResources +
-                ", extensions=" + extensions + ", passwordPublisher=" + passwordPublisher + '}';
-        }
-
-        return "MySqlConnectionConfiguration{unixSocket='" + domain +
-            "', connectTimeout=" + connectTimeout +
-            ", preserveInstants=" + preserveInstants +
-            ", connectionTimeZone=" + connectionTimeZone +
-            ", forceConnectionTimeZoneToSession=" + forceConnectionTimeZoneToSession +
-            ", zeroDateOption=" + zeroDateOption + ", user='" + user + "', password=" + password +
-            ", database='" + database + "', createDatabaseIfNotExist=" + createDatabaseIfNotExist +
-            ", preferPrepareStatement=" + preferPrepareStatement +
-            ", sessionVariables=" + sessionVariables +
-            ", lockWaitTimeout=" + lockWaitTimeout +
-            ", statementTimeout=" + statementTimeout +
-            ", loadLocalInfilePath=" + loadLocalInfilePath +
-            ", localInfileBufferSize=" + localInfileBufferSize +
-            ", queryCacheSize=" + queryCacheSize +
-            ", prepareCacheSize=" + prepareCacheSize +
-            ", compressionAlgorithms=" + compressionAlgorithms +
-            ", zstdCompressionLevel=" + zstdCompressionLevel +
-            ", loopResources=" + loopResources +
-            ", extensions=" + extensions + ", passwordPublisher=" + passwordPublisher + '}';
+                ", extensions=" + extensions +
+                ", passwordPublisher=" + passwordPublisher +
+                ", resolver=" + resolver;
     }
 
     /**
@@ -494,6 +495,9 @@ public final class MySqlConnectionConfiguration {
         @Nullable
         private Publisher<String> passwordPublisher;
 
+        @Nullable
+        private AddressResolverGroup<?> resolver;
+
         /**
          * Builds an immutable {@link MySqlConnectionConfiguration} with current options.
          *
@@ -528,7 +532,7 @@ public final class MySqlConnectionConfiguration {
                 loadLocalInfilePath,
                 localInfileBufferSize, queryCacheSize, prepareCacheSize,
                 compressionAlgorithms, zstdCompressionLevel, loopResources,
-                Extensions.from(extensions, autodetectExtensions), passwordPublisher);
+                Extensions.from(extensions, autodetectExtensions), passwordPublisher, resolver);
         }
 
         /**
@@ -1153,6 +1157,21 @@ public final class MySqlConnectionConfiguration {
          */
         public Builder passwordPublisher(Publisher<String> passwordPublisher) {
             this.passwordPublisher = passwordPublisher;
+            return this;
+        }
+
+        /**
+         * Sets the {@link AddressResolverGroup} for resolving host addresses.
+         * <p>
+         * This can be used to customize the DNS resolution mechanism, which is particularly useful in environments
+         * with specific DNS configuration needs or where a custom DNS resolver is required.
+         *
+         * @param resolver the resolver group to use for host address resolution.
+         * @return this {@link Builder}.
+         * @since 1.2.0
+         */
+        public Builder resolver(AddressResolverGroup<?> resolver) {
+            this.resolver = resolver;
             return this;
         }
 
