@@ -45,6 +45,9 @@ public final class DefinitionMetadataMessage implements ServerMessage {
 
     @Nullable
     private final String originColumn;
+    
+    @Nullable
+    private final String extendedTypeInfo;
 
     private final int collationId;
 
@@ -57,7 +60,7 @@ public final class DefinitionMetadataMessage implements ServerMessage {
     private final short decimals;
 
     private DefinitionMetadataMessage(@Nullable String database, String table, @Nullable String originTable,
-        String column, @Nullable String originColumn, int collationId, long size, short typeId,
+        String column, @Nullable String originColumn, @Nullable String extendedTypeInfo, int collationId, long size, short typeId,
         int definitions, short decimals) {
         require(size >= 0, "size must not be a negative integer");
 
@@ -66,6 +69,7 @@ public final class DefinitionMetadataMessage implements ServerMessage {
         this.originTable = originTable;
         this.column = requireNonNull(column, "column must not be null");
         this.originColumn = originColumn;
+        this.extendedTypeInfo = extendedTypeInfo;
         this.collationId = collationId;
         this.size = size;
         this.typeId = typeId;
@@ -96,6 +100,10 @@ public final class DefinitionMetadataMessage implements ServerMessage {
     public short getDecimals() {
         return decimals;
     }
+    
+    public String getExtendedTypeInfo() {
+    	return extendedTypeInfo;
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -115,21 +123,22 @@ public final class DefinitionMetadataMessage implements ServerMessage {
             table.equals(that.table) &&
             Objects.equals(originTable, that.originTable) &&
             column.equals(that.column) &&
-            Objects.equals(originColumn, that.originColumn);
+            Objects.equals(originColumn, that.originColumn) &&
+            Objects.equals(extendedTypeInfo, that.extendedTypeInfo);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(database, table, originTable, column, originColumn, collationId, size, typeId,
-            definitions, decimals);
+            definitions, decimals, extendedTypeInfo);
     }
 
     @Override
     public String toString() {
         return "DefinitionMetadataMessage{database='" + database + "', table='" + table + "' (origin:'" +
-            originTable + "'), column='" + column + "' (origin:'" + originColumn + "'), collationId=" +
-            collationId + ", size=" + size + ", type=" + typeId + ", definitions=" + definitions +
-            ", decimals=" + decimals + '}';
+            originTable + "'), column='" + column + "' (origin:'" + originColumn + "'), extendedTypeInfo=" +
+        	extendedTypeInfo + ", collationId=" +collationId + ", size=" + size + ", type=" + typeId + 
+        	", definitions=" + definitions + ", decimals=" + decimals + '}';
     }
 
     static DefinitionMetadataMessage decode(ByteBuf buf, ConnectionContext context) {
@@ -156,7 +165,7 @@ public final class DefinitionMetadataMessage implements ServerMessage {
         int definitions = buf.readUnsignedShortLE();
         short decimals = buf.readUnsignedByte();
 
-        return new DefinitionMetadataMessage(null, table, null, column, null, 0, size, typeId,
+        return new DefinitionMetadataMessage(null, table, null, column, null, null, 0, size, typeId,
             definitions, decimals);
     }
 
@@ -170,6 +179,11 @@ public final class DefinitionMetadataMessage implements ServerMessage {
         String originTable = readVarIntSizedString(buf, charset);
         String column = readVarIntSizedString(buf, charset);
         String originColumn = readVarIntSizedString(buf, charset);
+        
+        String extendTypeInfo = null;
+        if (context.getCapability().isMariaDb() &&  context.getCapability().isExtendedTypeInfo()) {
+        	extendTypeInfo = readVarIntSizedString(buf, charset);
+        }
 
         // Skip constant 0x0c encoded by var integer
         VarIntUtils.readVarInt(buf);
@@ -179,7 +193,7 @@ public final class DefinitionMetadataMessage implements ServerMessage {
         short typeId = buf.readUnsignedByte();
         int definitions = buf.readUnsignedShortLE();
 
-        return new DefinitionMetadataMessage(database, table, originTable, column, originColumn, collationId,
+        return new DefinitionMetadataMessage(database, table, originTable, column, originColumn, extendTypeInfo, collationId,
             size, typeId, definitions, buf.readUnsignedByte());
     }
 
