@@ -169,7 +169,11 @@ public final class Capability {
 //    private static final long MARIADB_CLIENT_PROGRESS = 1L << 32;
 //    private static final long MARIADB_CLIENT_COM_MULTI = 1L << 33;
 //    private static final long MARIADB_CLIENT_STMT_BULK_OPERATIONS = 1L << 34;
-//    private static final long MARIADB_CLIENT_EXTENDED_TYPE_INFO = 1L << 35;
+    
+    /**
+     * Receive extended column type information from MariaDB to find out more specific details about column type.
+     */
+    private static final long MARIADB_CLIENT_EXTENDED_TYPE_INFO = 1L << 35;
 //    private static final long MARIADB_CLIENT_CACHE_METADATA = 1L << 36;
 
     private static final long ALL_SUPPORTED = CLIENT_MYSQL | FOUND_ROWS | LONG_FLAG | CONNECT_WITH_DB |
@@ -308,6 +312,15 @@ public final class Capability {
      */
     public boolean isZstdCompression() {
         return (bitmap & ZSTD_COMPRESS) != 0;
+    }
+    
+    /**
+     * Checks if MariaDB extended type info enabled.
+     * 
+     * @return if MariaDB extended type info enabled.
+     */
+    public boolean isExtendedTypeInfo() {
+    	return (bitmap & MARIADB_CLIENT_EXTENDED_TYPE_INFO) != 0;
     }
 
     /**
