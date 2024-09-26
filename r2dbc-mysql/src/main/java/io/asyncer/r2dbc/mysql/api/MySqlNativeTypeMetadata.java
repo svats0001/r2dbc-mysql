@@ -71,10 +71,10 @@ public interface MySqlNativeTypeMetadata {
      * @return if value is a set
      */
     boolean isSet();
-    
+
     /**
      * Checks if value is JSON for MariaDb.
-     * 
+     *
      * @return if value is a JSON for MariaDb
      */
     boolean isMariaDbJson();

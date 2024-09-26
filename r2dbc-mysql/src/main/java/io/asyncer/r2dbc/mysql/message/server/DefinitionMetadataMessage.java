@@ -45,7 +45,7 @@ public final class DefinitionMetadataMessage implements ServerMessage {
 
     @Nullable
     private final String originColumn;
-    
+
     @Nullable
     private final String extendedTypeInfo;
 
@@ -60,8 +60,8 @@ public final class DefinitionMetadataMessage implements ServerMessage {
     private final short decimals;
 
     private DefinitionMetadataMessage(@Nullable String database, String table, @Nullable String originTable,
-        String column, @Nullable String originColumn, @Nullable String extendedTypeInfo, int collationId, long size, short typeId,
-        int definitions, short decimals) {
+        String column, @Nullable String originColumn, @Nullable String extendedTypeInfo, int collationId,
+        long size, short typeId, int definitions, short decimals) {
         require(size >= 0, "size must not be a negative integer");
 
         this.database = database;
@@ -100,9 +100,10 @@ public final class DefinitionMetadataMessage implements ServerMessage {
     public short getDecimals() {
         return decimals;
     }
-    
+
+    @Nullable
     public String getExtendedTypeInfo() {
-    	return extendedTypeInfo;
+        return extendedTypeInfo;
     }
 
     @Override
@@ -136,9 +137,9 @@ public final class DefinitionMetadataMessage implements ServerMessage {
     @Override
     public String toString() {
         return "DefinitionMetadataMessage{database='" + database + "', table='" + table + "' (origin:'" +
-            originTable + "'), column='" + column + "' (origin:'" + originColumn + "'), extendedTypeInfo=" +
-        	extendedTypeInfo + ", collationId=" +collationId + ", size=" + size + ", type=" + typeId + 
-        	", definitions=" + definitions + ", decimals=" + decimals + '}';
+            originTable + "'), column='" + column + "' (origin:'" + originColumn + "'), extendedTypeInfo='" +
+            extendedTypeInfo + "', collationId=" + collationId + ", size=" + size + ", type=" + typeId +
+            ", definitions=" + definitions + ", decimals=" + decimals + '}';
     }
 
     static DefinitionMetadataMessage decode(ByteBuf buf, ConnectionContext context) {
@@ -179,10 +180,10 @@ public final class DefinitionMetadataMessage implements ServerMessage {
         String originTable = readVarIntSizedString(buf, charset);
         String column = readVarIntSizedString(buf, charset);
         String originColumn = readVarIntSizedString(buf, charset);
-        
+
         String extendTypeInfo = null;
         if (context.getCapability().isMariaDb() &&  context.getCapability().isExtendedTypeInfo()) {
-        	extendTypeInfo = readVarIntSizedString(buf, charset);
+            extendTypeInfo = readVarIntSizedString(buf, charset);
         }
 
         // Skip constant 0x0c encoded by var integer
@@ -193,8 +194,8 @@ public final class DefinitionMetadataMessage implements ServerMessage {
         short typeId = buf.readUnsignedByte();
         int definitions = buf.readUnsignedShortLE();
 
-        return new DefinitionMetadataMessage(database, table, originTable, column, originColumn, extendTypeInfo, collationId,
-            size, typeId, definitions, buf.readUnsignedByte());
+        return new DefinitionMetadataMessage(database, table, originTable, column, originColumn,
+            extendTypeInfo, collationId, size, typeId, definitions, buf.readUnsignedByte());
     }
 
     private static String readVarIntSizedString(ByteBuf buf, Charset charset) {

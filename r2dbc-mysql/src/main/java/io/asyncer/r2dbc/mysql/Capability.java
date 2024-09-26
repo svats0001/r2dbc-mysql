@@ -169,7 +169,7 @@ public final class Capability {
 //    private static final long MARIADB_CLIENT_PROGRESS = 1L << 32;
 //    private static final long MARIADB_CLIENT_COM_MULTI = 1L << 33;
 //    private static final long MARIADB_CLIENT_STMT_BULK_OPERATIONS = 1L << 34;
-    
+
     /**
      * Receive extended column type information from MariaDB to find out more specific details about column type.
      */
@@ -181,10 +181,21 @@ public final class Capability {
         TRANSACTIONS | SECURE_SALT | MULTI_STATEMENTS | MULTI_RESULTS | PS_MULTI_RESULTS |
         PLUGIN_AUTH | CONNECT_ATTRS | VAR_INT_SIZED_AUTH | SESSION_TRACK | DEPRECATE_EOF | ZSTD_COMPRESS;
 
+    private static final long ALL_SUPPORTED_MARIADB = FOUND_ROWS | LONG_FLAG | CONNECT_WITH_DB |
+        NO_SCHEMA | COMPRESS | LOCAL_FILES | IGNORE_SPACE | PROTOCOL_41 | INTERACTIVE | SSL |
+        TRANSACTIONS | SECURE_SALT | MULTI_STATEMENTS | MULTI_RESULTS | PS_MULTI_RESULTS | PLUGIN_AUTH |
+        CONNECT_ATTRS | VAR_INT_SIZED_AUTH | SESSION_TRACK | DEPRECATE_EOF | ZSTD_COMPRESS |
+        MARIADB_CLIENT_EXTENDED_TYPE_INFO;
+
     /**
      * The default capabilities for a MySQL connection. It contains all client supported capabilities.
      */
     public static final Capability DEFAULT = new Capability(ALL_SUPPORTED);
+
+    /**
+     * The default capabilities for a MariaDB connection. It contains all client supported capabilities.
+     */
+    public static final Capability DEFAULT_MARIADB = new Capability(ALL_SUPPORTED_MARIADB);
 
     private final long bitmap;
 
@@ -313,14 +324,14 @@ public final class Capability {
     public boolean isZstdCompression() {
         return (bitmap & ZSTD_COMPRESS) != 0;
     }
-    
+
     /**
      * Checks if MariaDB extended type info enabled.
-     * 
+     *
      * @return if MariaDB extended type info enabled.
      */
     public boolean isExtendedTypeInfo() {
-    	return (bitmap & MARIADB_CLIENT_EXTENDED_TYPE_INFO) != 0;
+        return (bitmap & MARIADB_CLIENT_EXTENDED_TYPE_INFO) != 0;
     }
 
     /**
