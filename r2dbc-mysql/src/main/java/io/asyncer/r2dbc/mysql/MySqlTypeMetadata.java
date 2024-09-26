@@ -68,7 +68,7 @@ final class MySqlTypeMetadata implements MySqlNativeTypeMetadata {
      * collationId > 0 when protocol version == 4.1, 0 otherwise.
      */
     private final int collationId;
-    
+
     /**
      * The MariaDB extended type info field that provides more specific details about column type.
      */
@@ -116,10 +116,10 @@ final class MySqlTypeMetadata implements MySqlNativeTypeMetadata {
     public boolean isSet() {
         return (definitions & SET) != 0;
     }
-    
+
     @Override
     public boolean isMariaDbJson() {
-    	return extendedTypeInfo.equals("json");
+        return (extendedTypeInfo == null ? false : extendedTypeInfo.equals("json"));
     }
 
     @Override
@@ -133,22 +133,23 @@ final class MySqlTypeMetadata implements MySqlNativeTypeMetadata {
 
         MySqlTypeMetadata that = (MySqlTypeMetadata) o;
 
-        return typeId == that.typeId && definitions == that.definitions && collationId == that.collationId && 
-        		Objects.equals(extendedTypeInfo, that.extendedTypeInfo);
+        return typeId == that.typeId && definitions == that.definitions && collationId == that.collationId &&
+                   Objects.equals(extendedTypeInfo, that.extendedTypeInfo);
     }
 
     @Override
     public int hashCode() {
         int result = 31 * typeId + (int) definitions;
-        return 31 * result + collationId + extendedTypeInfo.hashCode();
+        result = 31 * result + collationId;
+        return 31 * result + (extendedTypeInfo == null ? 0 : extendedTypeInfo.hashCode());
     }
 
     @Override
     public String toString() {
         return "MySqlTypeMetadata{typeId=" + typeId +
             ", definitions=0x" + Integer.toHexString(definitions) +
-            ", collationId=" + collationId + 
-            ", extendedTypeInfo=" + extendedTypeInfo + 
-            '}';
+            ", collationId=" + collationId +
+            ", extendedTypeInfo='" + extendedTypeInfo +
+            "'}";
     }
 }
