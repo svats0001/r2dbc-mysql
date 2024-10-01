@@ -25,6 +25,8 @@ import io.r2dbc.spi.Row;
 import io.r2dbc.spi.RowMetadata;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
+
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
@@ -148,6 +150,7 @@ abstract class MariaDbIntegrationTestSupport extends IntegrationTestSupport {
     }
 
     @Test
+    @EnabledIf("envIsMariaDb10_5_1")
     void returningExtendedTypeInfoJson() {
         complete(conn -> changeCapability(conn).createStatement("CREATE TEMPORARY TABLE test(" +
             "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, value JSON NOT NULL)")
