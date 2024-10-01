@@ -183,6 +183,7 @@ public final class DefinitionMetadataMessage implements ServerMessage {
 
         String extendTypeInfo = null;
         if (context.getCapability().isMariaDb() &&  context.getCapability().isExtendedTypeInfo()) {
+            buf.readUnsignedByte();
             extendTypeInfo = readVarIntSizedString(buf, charset);
         }
 
