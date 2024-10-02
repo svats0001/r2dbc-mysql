@@ -175,7 +175,6 @@ public final class DefinitionMetadataMessage implements ServerMessage {
 
         CharCollation collation = context.getClientCollation();
         Charset charset = collation.getCharset();
-        System.out.println("Buffer val: " + buf);
         String database = readVarIntSizedString(buf, charset);
         String table = readVarIntSizedString(buf, charset);
         String originTable = readVarIntSizedString(buf, charset);
@@ -184,8 +183,13 @@ public final class DefinitionMetadataMessage implements ServerMessage {
 
         String extendTypeInfo = null;
         if (context.getCapability().isMariaDb() &&  context.getCapability().isExtendedTypeInfo()) {
-            buf.readUnsignedByte();
-            extendTypeInfo = readVarIntSizedString(buf, charset);
+            buf.markReaderIndex();
+            short extendedTypeInfoDataType = buf.readUnsignedByte();
+            if (extendedTypeInfoDataType == 0 || extendedTypeInfoDataType == 1) {
+                extendTypeInfo = readVarIntSizedString(buf, charset);
+            } else {
+                buf.resetReaderIndex();
+            }
         }
 
         // Skip constant 0x0c encoded by var integer
