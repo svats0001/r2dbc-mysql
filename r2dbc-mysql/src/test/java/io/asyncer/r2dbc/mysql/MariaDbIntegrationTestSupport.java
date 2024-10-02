@@ -157,7 +157,7 @@ abstract class MariaDbIntegrationTestSupport extends IntegrationTestSupport {
             .execute()
             .flatMap(IntegrationTestSupport::extractRowsUpdated)
             .thenMany(conn.createStatement("INSERT INTO test(value) VALUES (?)")
-                .bind(0, "'{\"abc\": 123}'")
+                .bind(0, "{\"abc\": 123}")
                 .returnGeneratedValues()
                 .execute())
             .flatMap(result -> result.map(DataEntity::readExtendedTypeInfoResult))
