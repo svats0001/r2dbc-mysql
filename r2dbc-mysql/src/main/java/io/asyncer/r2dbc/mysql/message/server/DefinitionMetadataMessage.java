@@ -175,6 +175,7 @@ public final class DefinitionMetadataMessage implements ServerMessage {
 
         CharCollation collation = context.getClientCollation();
         Charset charset = collation.getCharset();
+        System.out.println("Buffer val: " + buf.toString(charset));
         String database = readVarIntSizedString(buf, charset);
         String table = readVarIntSizedString(buf, charset);
         String originTable = readVarIntSizedString(buf, charset);
