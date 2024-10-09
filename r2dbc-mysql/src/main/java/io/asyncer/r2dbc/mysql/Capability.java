@@ -181,21 +181,10 @@ public final class Capability {
         TRANSACTIONS | SECURE_SALT | MULTI_STATEMENTS | MULTI_RESULTS | PS_MULTI_RESULTS |
         PLUGIN_AUTH | CONNECT_ATTRS | VAR_INT_SIZED_AUTH | SESSION_TRACK | DEPRECATE_EOF | ZSTD_COMPRESS;
 
-    private static final long ALL_SUPPORTED_MARIADB = FOUND_ROWS | LONG_FLAG | CONNECT_WITH_DB |
-        NO_SCHEMA | COMPRESS | LOCAL_FILES | IGNORE_SPACE | PROTOCOL_41 | INTERACTIVE | SSL |
-        TRANSACTIONS | SECURE_SALT | MULTI_STATEMENTS | MULTI_RESULTS | PS_MULTI_RESULTS | PLUGIN_AUTH |
-        CONNECT_ATTRS | VAR_INT_SIZED_AUTH | SESSION_TRACK | DEPRECATE_EOF | ZSTD_COMPRESS |
-        MARIADB_CLIENT_EXTENDED_TYPE_INFO;
-
     /**
      * The default capabilities for a MySQL connection. It contains all client supported capabilities.
      */
     public static final Capability DEFAULT = new Capability(ALL_SUPPORTED);
-
-    /**
-     * The default capabilities for a MariaDB connection. It contains all client supported capabilities.
-     */
-    public static final Capability DEFAULT_MARIADB = new Capability(ALL_SUPPORTED_MARIADB);
 
     private final long bitmap;
 

@@ -152,7 +152,7 @@ abstract class MariaDbIntegrationTestSupport extends IntegrationTestSupport {
     @Test
     @EnabledIf("envIsMariaDb10_5_1")
     void returningExtendedTypeInfoJson() {
-        complete(conn -> changeCapability(conn).createStatement("CREATE TEMPORARY TABLE test(" +
+        complete(conn -> conn.createStatement("CREATE TEMPORARY TABLE test(" +
             "id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, value JSON NOT NULL)")
             .execute()
             .flatMap(IntegrationTestSupport::extractRowsUpdated)
@@ -162,7 +162,7 @@ abstract class MariaDbIntegrationTestSupport extends IntegrationTestSupport {
                 .execute())
             .flatMap(result -> result.map(DataEntity::readExtendedTypeInfoResult))
             .collectList()
-            .doOnNext(list -> assertThat(list.get(0)).isEqualTo(true))
+            .doOnNext(list -> assertIfExtendedTypeInfoEnabled(conn, list))
             );
     }
 
@@ -196,10 +196,13 @@ abstract class MariaDbIntegrationTestSupport extends IntegrationTestSupport {
             .then();
     }
 
-    private static MySqlConnection changeCapability(MySqlConnection conn) {
-        ConnectionContext ctxt = ((MySqlSimpleConnection) conn).context();
-        ctxt.initHandshake(ctxt.getConnectionId(), ctxt.getServerVersion(), Capability.DEFAULT_MARIADB);
-        return conn;
+    private static void assertIfExtendedTypeInfoEnabled(MySqlConnection conn, List<Boolean> list) {
+        boolean enabled = ((MySqlSimpleConnection)conn).context().getCapability().isExtendedTypeInfo();
+        if (enabled) {
+            assertThat(list.get(0)).isEqualTo(true);
+        } else {
+            assertThat(list.get(0)).isEqualTo(false);
+        }
     }
 
     private static final class DataEntity {
